@@ -1,0 +1,13 @@
+.text-area{
+    -fx-background-color: #f4f4f4;
+    -fx-border-color: black;
+}
+
+.text-area .content {
+    -fx-background-color: #f4f4f4;
+}
+
+.text-area:focused .content {
+    -fx-background-color: #f4f4f4;
+}
+
