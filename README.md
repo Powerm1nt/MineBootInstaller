@@ -1,2 +1,2 @@
 # MinebootInstaller
-Un installeur pour le launceur de jeu MinebootLauncher
+Un installeur pour le lanceur de jeu MinebootLauncher
