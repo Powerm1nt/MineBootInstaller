@@ -5,9 +5,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import com.sunproject.mineboot.installer.GithubAPI;
 import com.sunproject.mineboot.installer.Installer;
 import com.sunproject.mineboot.installer.TxtReader;
+import com.sunproject.sunupdate.GithubAPI;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -25,7 +25,8 @@ public class InstUiController implements Initializable {
 	private int currentSlideMumber = 0;
 	private boolean isAborded = false;
 	private TextArea area;
-	GithubAPI remoteRepo;
+	private GithubAPI remoteRepo;
+	private boolean isRepoIsInstancied = false;
 
 	@FXML
 	private Text txt_welcome = new Text();
@@ -36,7 +37,6 @@ public class InstUiController implements Initializable {
 	@FXML
 	private HBox loadingStatus = new HBox();
 
-	
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
 
@@ -50,17 +50,6 @@ public class InstUiController implements Initializable {
 		area.setText("Loading ...");
 		btn_next.setOnAction(e -> changeSlide(++currentSlideMumber));
 		btn_previous.setOnAction(e -> changeSlide(--currentSlideMumber));
-
-		// Init a new instance of GithubApi
-		
-//		try {
-//			this.remoteRepo = new GithubAPI("https://api.github.com/repos/sundev79/MinebootLauncher/releases/latest");
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-		//////////////////////////////////////
 
 		// Init The first Slide
 
@@ -105,11 +94,14 @@ public class InstUiController implements Initializable {
 						btn_next.setText("Install");
 					});
 
-					
-					if (!GithubAPI.isInstancied()) this.remoteRepo = new GithubAPI("https://api.github.com/repos/sundev79/MinebootLauncher/releases/latest");
-					
+					if (!isRepoIsInstancied) {
+						remoteRepo = new GithubAPI("https://api.github.com/repos/sundev79/MinebootLauncher/releases/latest");
+						isRepoIsInstancied = true;
+					}
+
 					long contentLength = (this.remoteRepo.getLatestRelease().getFileSize());
-					area.appendText("\nCeci va télécharger les fichiers requis sur github.com, environ " + (contentLength / 1000_024) + " Mo.");
+					area.appendText("\nCeci va télécharger les fichiers requis sur github.com, environ "
+							+ (contentLength / 1000_024) + " Mo.");
 
 					showLoading(false);
 					Platform.runLater(() -> btn_next.setDisable(false));

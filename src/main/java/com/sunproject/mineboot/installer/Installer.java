@@ -3,6 +3,8 @@ package com.sunproject.mineboot.installer;
 import java.io.IOException;
 
 import com.sunproject.mineboot.installer.ui.InstUi;
+import com.sunproject.sunupdate.DownloadUpdate;
+import com.sunproject.sunupdate.GithubAPI;
 
 public class Installer {
 
