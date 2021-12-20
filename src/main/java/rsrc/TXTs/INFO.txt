@@ -1,2 +1,0 @@
-Bienvenue sur l'installateur du lanceur de jeu, MineBootLauncher.
-Ce Logiciel est libre ! (voir licence).

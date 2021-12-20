@@ -1,31 +1,33 @@
 package com.sunproject.mineboot.installer.ui;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ResourceBundle;
-
 import com.sunproject.mineboot.installer.Installer;
 import com.sunproject.mineboot.installer.TxtReader;
 import com.sunproject.sunupdate.GithubAPI;
+import static javafx.application.Platform.runLater;
 
 import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ResourceBundle;
+
 public class InstUiController implements Initializable {
 
 	private int currentSlideMumber = 0;
-	private boolean isAborded = false;
+	public static boolean isAborted = false;
 	private TextArea area;
-	private GithubAPI remoteRepo;
 	private boolean isRepoIsInstancied = false;
 
 	@FXML
@@ -47,6 +49,7 @@ public class InstUiController implements Initializable {
 		btn_cancel.setOnAction(e -> InstUi.cancel());
 		area = (TextArea) instView.getChildren().get(0);
 		area.setDisable(false);
+		area.addEventFilter(ContextMenuEvent.CONTEXT_MENU_REQUESTED, Event::consume);
 		area.setText("Loading ...");
 		btn_next.setOnAction(e -> changeSlide(++currentSlideMumber));
 		btn_previous.setOnAction(e -> changeSlide(--currentSlideMumber));
@@ -61,7 +64,7 @@ public class InstUiController implements Initializable {
 
 	private void changeSlide(int currentSlide) {
 
-		btn_previous.setDisable((currentSlide > 0) ? false : true);
+		btn_previous.setDisable(currentSlide <= 0);
 
 		switch (currentSlide) {
 		case 0:
@@ -83,28 +86,24 @@ public class InstUiController implements Initializable {
 			break;
 		case 2:
 			area.clear();
-			area.setText("Installation Setup : ");
-			area.appendText("\t Installation de l\'application dans le répertoire utilisateur.");
+			area.setText("Je vais installer MinebootLauncher dans votre dossier personnel, juste ici :\n");
+			area.appendText(System.getProperty("user.home"));
 			showLoading(true);
 			new Thread(() -> {
 
 				try {
-					Platform.runLater(() -> {
+					runLater(() -> {
 						btn_next.setDisable(true);
 						btn_next.setText("Install");
 					});
 
-					if (!isRepoIsInstancied) {
-						remoteRepo = new GithubAPI("https://api.github.com/repos/sundev79/MinebootLauncher/releases/latest");
-						isRepoIsInstancied = true;
-					}
 
-					long contentLength = (this.remoteRepo.getLatestRelease().getFileSize());
+					long contentLength = (Installer.getApiRepo().getLatestRelease().getFileSize());
 					area.appendText("\nCeci va télécharger les fichiers requis sur github.com, environ "
 							+ (contentLength / 1000_024) + " Mo.");
 
 					showLoading(false);
-					Platform.runLater(() -> btn_next.setDisable(false));
+					runLater(() -> btn_next.setDisable(false));
 				} catch (IOException e) {
 					area.clear();
 					area.setDisable(true);
@@ -112,7 +111,7 @@ public class InstUiController implements Initializable {
 					btn_previous.setDisable(true);
 					btn_next.setDisable(true);
 
-					Platform.runLater(() -> {
+					runLater(() -> {
 						showLoading(false);
 						Alert alrt = new Alert(AlertType.ERROR);
 						alrt.setContentText("L'installation à échoué, Aucune connexion internet.");
@@ -126,30 +125,46 @@ public class InstUiController implements Initializable {
 			break;
 		case 3:
 
-			area.setText("Installing ...");
+			area.setText("Installation en cours ... ");
 			btn_next.setDisable(true);
 			btn_previous.setDisable(true);
 			showLoading(true);
 			Thread installThread = new Thread(() -> {
 				try {
-					Installer.startInstall();
-					this.isAborded = false;
-				} catch (IOException e) {
-					this.isAborded = true;
-					System.err.println("timeout !!!".toUpperCase());
+					runLater(() -> area.appendText("\nPre-install ... "));
+					Installer.preInstall();
+					runLater(() -> area.appendText("done !"));
+					runLater(() -> area.appendText("\nDownloading package ... "));
+					Installer.startDownload();
+					runLater(() -> area.appendText("done !"));
+					runLater(() -> area.appendText("\nUnpacking package ... "));
+					Installer.unpackPackage();
+					runLater(() -> area.appendText("done !"));
+
+					runLater(() -> area.appendText("\n!!! warning, a compilation script will launch, please do not close the window !!!"));
+					try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
+
+					runLater(() -> area.appendText("\nPost-install ... "));
+					Installer.configureInstall();
+					runLater(() -> area.appendText("done !"));
+					isAborted = false;
+				} catch (IOException | InterruptedException e) {
+					isAborted = true;
+					area.appendText("\n\nError Info : " + (e.getMessage() == null ? "Unknown error !" : e.getMessage()));
 					e.printStackTrace();
 				}
 				Platform.runLater(() -> changeSlide(-1));
 			});
-			installThread.setName("Installer Thread");
+			installThread.setName("MinebootInstaller Thread");
 			installThread.setDaemon(true);
 			installThread.start();
 			break;
 		default:
-			if (this.isAborded) {
-				area.setText("L'installation à échoué !");
+			if (isAborted) {
+				area.appendText("\nL'installation à échoué !");
+				area.appendText("\n \nJe Suis désolé, mais l'installation a eu un problème !!!");
 			} else {
-				area.setText("L'installation est terminé !");
+				area.appendText("\nL'installation est terminé !");
 			}
 			btn_next.setDisable(true);
 			btn_previous.setDisable(true);

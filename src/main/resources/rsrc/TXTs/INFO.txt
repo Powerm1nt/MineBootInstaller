@@ -1,0 +1,9 @@
+Bienvenue sur l'installateur du lanceur de jeu, MineBootLauncher.
+Ce Logiciel est libre ! (voir licence).
+
+Pour mener à bien cette installation, quelque pré-requis sont nécessaire :
+
+- Avoir Internet :-),
+- Avoir au moins 150 Go de libre ! Nan je rigole 1Go sera suffisant ;)
+
+Je pense que vous avez quasiment tous ces pré-requis dispo, sauf pour java 14, on va l'installer ensemble !

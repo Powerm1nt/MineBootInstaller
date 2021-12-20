@@ -1,6 +1,13 @@
+@font-face {
+    src: url("/rsrc/fonts/CascadiaMono.ttf");
+}
+
 .text-area{
+    -fx-font-family: "Cascadia Mono Regular";
     -fx-background-color: #f4f4f4;
     -fx-border-color: black;
+    -fx-context-menu-enabled: false;
+
 }
 
 .text-area .content {
